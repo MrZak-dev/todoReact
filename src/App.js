@@ -1,26 +1,63 @@
 import React from 'react';
-import logo from './logo.svg';
+import {BrowserRouter as Router , Route} from 'react-router-dom'
+import Header from './components/layout/Header';
+import AddTodo from './components/AddTodo'
+import Todos from './components/Todos';
+import About from './components/pages/About';
+import uuid from 'uuid';
+import axios from 'axios';
 import './App.css';
 
-function App() {
+class App extends React.Component  {
+  state = {
+    todos:[]
+  }
+
+  componentDidMount(){
+    axios.get('https://jsonplaceholder.typicode.com/todos?_limit=4')
+    .then(res => this.setState({todos:res.data}));
+  }
+  //complete uncomplete
+  markComplete = (id) => {
+    this.setState({todos: this.state.todos.map(todo=>{
+      if(todo.id === id){
+        todo.completed = !todo.completed;
+      }
+      return todo ;
+    })});
+  }
+
+  //delete
+  delTodo = (id) => {
+    this.setState({todos : [...this.state.todos.filter(todo=>todo.id !== id)]});
+  }
+
+  //Add to do 
+  addTodo = (title) => {
+    const newTodo = {
+      id:uuid.v4(),
+      title,
+      isCompleted : false
+    }
+    this.setState({todos : [...this.state.todos,newTodo]});
+  }
+  render(){
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Router>
+      <div className="App">
+        <Header/>
+        <Route exact path="/" render = {props => (
+          <React.Fragment>
+            <AddTodo addTodo = {this.addTodo }/>
+            <Todos todos = {this.state.todos} markComplete = {this.markComplete} delTodo={this.delTodo}/>
+          </React.Fragment>
+        )}/>
+        <Route path="/about" component = {About}/>
+
+      </div>
+    </Router>
   );
+}
 }
 
 export default App;
